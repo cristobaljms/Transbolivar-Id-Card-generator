@@ -1,0 +1,41 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="es">
+    {% include 'base/head.html' %}
+<body>
+
+    <br><br><br>
+    <div class="container">    
+        {%block content%}
+        <table id="empleados_table">
+            <thead>
+                <tr>
+                    <td>Cedula</td>
+                    <td>Nombres y Apellidos</td>
+                    <td>Cargo</td>
+                    <td>Accion</td>
+                </tr>
+            </thead>
+            <tbody>
+                {%if empleados%}
+                    {%for empleado in empleados%}
+                        <tr>
+                            <td>{{empleado.cedula}}</td>
+                            <td>{{empleado.nombres}}</td>
+                            <td>{{empleado.descripcion}}</td>
+                            <td>
+                                <a class="btn btn-primary" href="#">GENERAR</a>
+                            </td>
+                        </tr>
+                    {%endfor%}
+                    {%else%}
+                        <h1>No hay registros</h1>
+                {%endif%}
+            </tbody>
+        </table>
+        {%endblock%}
+    </div>
+    {% include 'base/scripts.html' %}
+
+</body>
+</html>
