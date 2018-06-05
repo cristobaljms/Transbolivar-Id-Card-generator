@@ -24,7 +24,7 @@
                             <td>{{empleado.nombres}}</td>
                             <td>{{empleado.descripcion}}</td>
                             <td>
-                                <a class="btn btn-primary" href="#">GENERAR</a>
+                                <a class="btn btn-primary" href="{% url 'generar' empleado.cedula %}">GENERAR</a>
                             </td>
                         </tr>
                     {%endfor%}
@@ -36,6 +36,5 @@
         {%endblock%}
     </div>
     {% include 'base/scripts.html' %}
-
 </body>
 </html>
