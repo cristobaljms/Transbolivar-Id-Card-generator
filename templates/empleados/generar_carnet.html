@@ -1,11 +1,15 @@
 {% extends 'base/base.html' %}
 
+{% load staticfiles %}
 {% block content %}
     <h3>{{cedula}}</h3>
     <br>
     <h3>{{nombres}}</h3>
     <br>
     <h3>{{descripcion}}</h3>
+    <br>
+    <img src="{% static 'files/carnet-0.jpg' %}" alt="">
+    <img src="{% static 'files/carnet-1.jpg' %}" alt="">
     <br>
     <a class="btn btn-danger" href="{% url 'index' %}">RETORNAR</a>
 {% endblock %}

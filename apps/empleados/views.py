@@ -1,9 +1,13 @@
+import os
+import io
 from django.shortcuts import render
 from django.templatetags.static import static
+from PyPDF2 import PdfFileWriter, PdfFileReader
 from django.db import connection
 from collections import namedtuple
+from reportlab.pdfgen import canvas
 from wand.image import Image, Color
-import os
+from ROOT import settings
 
 def index(request):
     query = "SELECT DISTINCT(a.cedper) AS cedula, (a.apeper || ' ' || a.nomper) as nombres, d.descar as descripcion FROM sno_personal a INNER JOIN sno_hpersonalnomina b ON a.codper = b.codper INNER JOIN sno_cargo d ON b.codcar = d.codcar WHERE b.codperi = ( SELECT MAX(codperi) FROM sno_hpersonalnomina c WHERE  b.codper = c.codper) ORDER BY a.cedper"
@@ -27,11 +31,37 @@ def generar_carnet(request, id):
         cursor.execute(query, [str(id)])
         result = namedtuplefetchall(cursor)
         contexto = {'cedula':result[0].cedula, 'nombres':result[0].nombres, 'descripcion': result[0].descripcion}
-        url_diseno_carnet = static('files/carnet.pdf')
-        url_output = static('files/')
-        pdf_to_jpg(url_diseno_carnet, url_output)
-    return render(request, 'empleados/generar_carnet.html', contexto)
 
+        # Generar imagen JPG desde el PDF creado
+        url_diseno_carnet = os.path.join(settings.BASE_DIR, 'static/files/carnet.pdf')
+        url_carnet = os.path.join(settings.BASE_DIR, 'static/carnets/'+result[0].cedula+'.pdf')
+        url_output = os.path.join(settings.BASE_DIR, 'static/files/')
+        packet = io.BytesIO()
+        # create a new PDF with Reportlab
+        can = canvas.Canvas(packet, pagesize=(153,240))
+        can.drawString(10, 100, result[0].cedula)
+        can.drawString(10, 150, result[0].nombres)
+        can.drawString(10, 200, result[0].descripcion)
+        can.save()
+
+
+        packet.seek(0)
+        new_pdf = PdfFileReader(packet)
+        # read your existing PDF
+        existing_pdf = PdfFileReader(open(url_diseno_carnet, "rb"))
+        output = PdfFileWriter()
+        # add the "watermark" (which is the new pdf) on the existing page
+        page = existing_pdf.getPage(0)
+        page.mergePage(new_pdf.getPage(0))
+        output.addPage(page)
+        # finally, write "output" to a real file
+        outputStream = open(url_carnet, "wb")
+        output.write(outputStream)
+        outputStream.close()
+
+        pdf_to_jpg(url_carnet,url_output)
+
+    return render(request, 'empleados/generar_carnet.html', contexto)
 
 
 def pdf_to_jpg(pdf_path,  output_path = None, resolution = 200):
