@@ -1,0 +1,21 @@
+h1 {
+	text-align: center;
+	margin: 1em;
+}
+
+h3 {
+	margin: 1em;
+}
+
+#images {
+	text-align: center;
+}
+
+#data_empleado {
+	margin: 3em;
+}
+
+#botones {
+	margin: 2em;
+	text-align: center;
+}

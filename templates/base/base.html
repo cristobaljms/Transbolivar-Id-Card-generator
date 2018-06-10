@@ -4,9 +4,10 @@
     {% include 'base/head.html' %}
 <body>
 
-    <br><br><br>
-    <div class="container">    
+    <br>
+    <div class="container">   
         {%block content%}
+        <h1>Sistema de carnetización Transbolivar</h1> 
         <table id="empleados_table">
             <thead>
                 <tr>
@@ -22,7 +23,7 @@
                         <tr>
                             <td>{{empleado.cedula}}</td>
                             <td>{{empleado.nombres}}</td>
-                            <td>{{empleado.descripcion}}</td>
+                            <td>{{empleado.cargo}}</td>
                             <td>
                                 <a class="btn btn-primary" href="{% url 'generar' empleado.cedula %}">GENERAR</a>
                             </td>

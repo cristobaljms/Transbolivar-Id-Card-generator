@@ -2,14 +2,33 @@
 
 {% load staticfiles %}
 {% block content %}
-    <h3>{{cedula}}</h3>
-    <br>
-    <h3>{{nombres}}</h3>
-    <br>
-    <h3>{{descripcion}}</h3>
-    <br>
-    <img src="{% static 'files/carnet-0.jpg' %}" alt="">
-    <img src="{% static 'files/carnet-1.jpg' %}" alt="">
-    <br>
-    <a class="btn btn-danger" href="{% url 'index' %}">RETORNAR</a>
+    <div>
+        <div id="data_empleado">
+            <form>
+                <div class="form-group">
+                    <label for="cedula">Cedula</label>
+                    <input type="text" class="form-control" id="cedula" placeholder="Cedula" value="{{cedula}}">
+                </div>
+                <div class="form-group">
+                    <label for="nombre">Nombres y apellidos</label>
+                    <input type="text" class="form-control" id="nombre" placeholder="Nombres y apellidos" value="{{nombres}}">
+                </div>
+                <div class="form-group">
+                    <label for="cargo">Cargo</label>
+                    <input type="text" class="form-control" id="cargo" placeholder="Cargo"  value="{{cargo}}">
+                </div>
+                <button type="submit" class="btn btn-primary">Actualizar</button>
+            </form>
+        </div>
+      
+        <div id="images">
+            <img src="{% static 'files/cara_1.jpg' %}" alt="">
+            <img src="{% static 'files/cara_2.jpg' %}" alt="">
+        </div>
+        <br>
+    </div>
+    <div id="botones">
+        <a class="btn btn-danger" href="{% url 'index' %}">RETORNAR</a>
+        <button class="btn btn-info" onclick="imprimir()">IMPRIMIR</button> 
+    </div>
 {% endblock %}

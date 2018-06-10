@@ -74,6 +74,7 @@ WSGI_APPLICATION = 'ROOT.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
 
+"""
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
@@ -81,6 +82,26 @@ DATABASES = {
         'USER': 'postgres',
         'PASSWORD': '87267B0l1v4r',
         'HOST': '192.168.1.17',
+        'PORT': 5432,
+    }
+}
+"""
+
+DATABASES = {
+    #'default2': {
+    #    'ENGINE': 'django.db.backends.postgresql_psycopg2',
+    #    'NAME': 'transbolivardb',
+    #    'USER': 'postgres',
+    #    'PASSWORD': 'postgres',
+    #    'HOST': 'localhost',
+    #    'PORT': 5432,
+    #},
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'sistemacarnetdb',
+        'USER': 'postgres',
+        'PASSWORD': 'postgres',
+        'HOST': 'localhost',
         'PORT': 5432,
     }
 }

@@ -11,7 +11,8 @@ from wand.image import Image, Color
 from ROOT import settings
 
 def index(request):
-    query = "SELECT DISTINCT(a.cedper) AS cedula, (a.apeper || ' ' || a.nomper) as nombres, d.descar as descripcion FROM sno_personal a INNER JOIN sno_hpersonalnomina b ON a.codper = b.codper INNER JOIN sno_cargo d ON b.codcar = d.codcar WHERE b.codperi = ( SELECT MAX(codperi) FROM sno_hpersonalnomina c WHERE  b.codper = c.codper) ORDER BY a.cedper"
+    query = "SELECT * FROM empleados"
+    #query = "SELECT DISTINCT(a.cedper) AS cedula, (a.apeper || ' ' || a.nomper) as nombres, d.descar as descripcion FROM sno_personal a INNER JOIN sno_hpersonalnomina b ON a.codper = b.codper INNER JOIN sno_cargo d ON b.codcar = d.codcar WHERE b.codperi = ( SELECT MAX(codperi) FROM sno_hpersonalnomina c WHERE  b.codper = c.codper) ORDER BY a.cedper"
     with connection.cursor() as cursor:
         cursor.execute(query)
         results = namedtuplefetchall(cursor)
@@ -27,23 +28,43 @@ def namedtuplefetchall(cursor):
 
 
 def generar_carnet(request, id):
-    query = "SELECT DISTINCT(a.cedper) AS cedula, (a.apeper || ' ' || a.nomper) as nombres, d.descar as descripcion FROM sno_personal a INNER JOIN sno_hpersonalnomina b ON a.codper = b.codper INNER JOIN sno_cargo d ON b.codcar = d.codcar WHERE b.codperi = ( SELECT MAX(codperi) FROM sno_hpersonalnomina c WHERE  b.codper = c.codper) AND a.cedper = %s"
+    query = "SELECT * FROM empleados WHERE cedula = %s"
+    #query = "SELECT DISTINCT(a.cedper) AS cedula, (a.apeper || ' ' || a.nomper) as nombres, d.descar as descripcion FROM sno_personal a INNER JOIN sno_hpersonalnomina b ON a.codper = b.codper INNER JOIN sno_cargo d ON b.codcar = d.codcar WHERE b.codperi = ( SELECT MAX(codperi) FROM sno_hpersonalnomina c WHERE  b.codper = c.codper) AND a.cedper = %s"
     with connection.cursor() as cursor:
         cursor.execute(query, [str(id)])
         result = namedtuplefetchall(cursor)
-        contexto = {'cedula':result[0].cedula, 'nombres':result[0].nombres, 'descripcion': result[0].descripcion}
+        contexto = {'cedula':result[0].cedula, 'nombres':result[0].nombres, 'cargo': result[0].cargo}
 
         # Generar imagen JPG desde el PDF creado
-        url_diseno_carnet = os.path.join(settings.BASE_DIR, 'static/files/carnet.pdf')
+        url_diseno_carnet = os.path.join(settings.BASE_DIR, 'static/files/carnet_admin.pdf')
         url_carnet = os.path.join(settings.BASE_DIR, 'static/files/carnets/'+result[0].cedula+'-0.pdf')
         url_output = os.path.join(settings.BASE_DIR, 'static/files/')
 
         packet = io.BytesIO()
         can = canvas.Canvas(packet, pagesize=(153,240))
         
-        can.drawString(10, 100, result[0].cedula)
-        can.drawString(10, 110, result[0].nombres)
-        can.drawString(10, 120, result[0].descripcion)
+        foto_carnet = os.path.join(settings.BASE_DIR, 'static/files/qrimg/foto_carnet.png')
+        can.drawImage(foto_carnet, 40, 88, width=72, height=72, mask=None)
+
+        can.setFont("Helvetica-Bold", 6)
+        if len(result[0].nombres) > 36:
+            can.setFont("Helvetica-Bold", 5.5)
+        can.drawCentredString(76.5, 80, result[0].nombres)
+
+        can.setFont("Helvetica", 6)
+        can.drawCentredString(76.5, 73, 'C.I '+result[0].cedula)
+
+
+        can.setFont("Helvetica-Bold", 8)
+        if len(result[0].cargo) > 30:
+            can.setFont("Helvetica-Bold", 7.5)
+        if len(result[0].cargo) > 33:
+            can.setFont("Helvetica-Bold", 6.6)
+        if len(result[0].cargo) > 35:
+            can.setFont("Helvetica-Bold", 6)
+
+        #can.drawCentredString(76.5, 62, str(len(result[0].cargo)))
+        can.drawCentredString(76.5, 52, result[0].cargo)
         can.save()
 
         packet.seek(0)
@@ -63,7 +84,7 @@ def generar_carnet(request, id):
         outputStream.close()
 
         generar_carnet_cara2(result[0].cedula)
-        pdf_to_jpg(url_carnet,url_output,200,result[0].cedula+'-0')
+        pdf_to_jpg(url_carnet,url_output,200,'cara_1')
 
     return render(request, 'empleados/generar_carnet.html', contexto)
 
@@ -94,7 +115,7 @@ def generar_carnet_cara2(ci):
     packet = io.BytesIO()
     canqr = canvas.Canvas(packet, pagesize=(153,240))
     url_qrcode_img = os.path.join(settings.BASE_DIR, 'static/files/qrimg/'+ci+'.png')
-    canqr.drawImage(url_qrcode_img, 10, 5, width=50, height=50, mask=None)
+    canqr.drawImage(url_qrcode_img, 85, 4, width=64, height=64, mask=None)
     canqr.save()
 
     packet.seek(0)
@@ -114,7 +135,7 @@ def generar_carnet_cara2(ci):
     output.write(outputStream)
     outputStream.close()
 
-    pdf_to_jpg(url_carnet,url_output,200,ci+'-1')
+    pdf_to_jpg(url_carnet,url_output,200,'cara_2')
 
 
 def pdf_to_jpg(pdf_path = None,  output_path = None, resolution = 200, name_file = 'file'):
@@ -128,5 +149,5 @@ def pdf_to_jpg(pdf_path = None,  output_path = None, resolution = 200, name_file
                 image.format = 'jpg'
                 image.background_color = Color('white')
                 image.alpha_channel = 'remove'
-                image_name = os.path.join(output_path, '{}-{}.jpg'.format(pdf_name, n))
+                image_name = os.path.join(output_path, name_file+'.jpg')
                 image.save(filename = image_name)
