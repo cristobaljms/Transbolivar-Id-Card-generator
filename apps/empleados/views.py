@@ -64,8 +64,8 @@ def generar_carnet(request, id):
 
 
         can.setFont("Helvetica-Bold", 8)
-        if len(result[0].cargo) > 30:
-            can.setFont("Helvetica-Bold", 7.5)
+        if len(result[0].cargo) >= 29:
+            can.setFont("Helvetica-Bold", 7.2)
         if len(result[0].cargo) > 33:
             can.setFont("Helvetica-Bold", 6.6)
         if len(result[0].cargo) > 35:
@@ -206,8 +206,8 @@ def renderizar(request):
     can.drawCentredString(76.5, 73, 'C.I '+cedula)
 
     can.setFont("Helvetica-Bold", 8)
-    if len(cargo) > 30:
-        can.setFont("Helvetica-Bold", 7.5)
+    if len(cargo) >= 29:
+        can.setFont("Helvetica-Bold", 7.2)
     if len(cargo) > 33:
         can.setFont("Helvetica-Bold", 6.6)
     if len(cargo) > 35:
