@@ -3,8 +3,9 @@
 {% load staticfiles %}
 {% block content %}
     <div>
-        <div id="data_empleado">
-            <form>
+        <div id="data_empleado" >
+            <form id="form_data_empleado" action="{% url 'renderizar' %}"  method="POST">
+                {%csrf_token%}
                 <div class="form-group">
                     <label for="cedula">Cedula</label>
                     <input type="text" class="form-control" id="cedula" placeholder="Cedula" value="{{cedula}}">
@@ -29,6 +30,7 @@
     </div>
     <div id="botones">
         <a class="btn btn-danger" href="{% url 'index' %}">RETORNAR</a>
-        <button class="btn btn-info" onclick="imprimir()">IMPRIMIR</button> 
+        <a class="btn btn-info" href="{% url 'imprimir' cedula %}">IMPRIMIR</a>       
     </div>
 {% endblock %}
+
