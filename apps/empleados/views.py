@@ -1,6 +1,7 @@
 import os
 import io
 import qrcode
+import json
 from django.shortcuts import render
 from django.templatetags.static import static
 from PyPDF2 import PdfFileWriter, PdfFileReader, PdfFileMerger
@@ -36,6 +37,7 @@ def generar_carnet(request, id):
         result = namedtuplefetchall(cursor)
         contexto = {'cedula':result[0].cedula, 'nombres':result[0].nombres, 'cargo': result[0].cargo}
         cargos_operaciones = ['OPERADOR URBANO','OPERADOR INTERURBANO','OPERADOR INTERURBANO I', 'OPERADOR INSTRUCTOR', 'SUPERVISOR DE OPERACIONES','JEFE DEL CENTRO DE CONTROL DE OPERACIONES','AUXILIAR DE FLOTA']
+        
         # Generar imagen JPG desde el PDF creado
         url_diseno_carnet_admin = os.path.join(settings.BASE_DIR, 'static/files/carnet_admin.pdf')
         url_diseno_carnet_oper = os.path.join(settings.BASE_DIR, 'static/files/carnet_oper.pdf')
@@ -171,21 +173,28 @@ def pdf_to_jpg(pdf_path = None,  output_path = None, resolution = 200, name_file
                 image.save(filename = image_name)
 
 def renderizar(request):
-
-    cedula = request.POST['cedula']
-    nombres = request.POST['nombres']
-    cargo = request.POST['cargo']
     
 
+    cedula = request.POST.get('cedula',False)
+    nombres = request.POST.get('nombres',False)
+    cargo = request.POST.get('cargo',False)
+    
+    cargos_operaciones = ['OPERADOR URBANO','OPERADOR INTERURBANO','OPERADOR INTERURBANO I', 'OPERADOR INSTRUCTOR', 'SUPERVISOR DE OPERACIONES','JEFE DEL CENTRO DE CONTROL DE OPERACIONES','AUXILIAR DE FLOTA']
+        
     # Generar imagen JPG desde el PDF creado
-    url_diseno_carnet = os.path.join(settings.BASE_DIR, 'static/files/carnet_admin.pdf')
-    url_carnet = os.path.join(settings.BASE_DIR, 'static/files/carnets/'+cedula+'-0.pdf')
+    url_diseno_carnet_admin = os.path.join(settings.BASE_DIR, 'static/files/carnet_admin.pdf')
+    url_diseno_carnet_oper = os.path.join(settings.BASE_DIR, 'static/files/carnet_oper.pdf')
+    url_carnet = os.path.join(settings.BASE_DIR, 'static/files/tmp/'+cedula+'-0.pdf')
+    url_carnet_final = os.path.join(settings.BASE_DIR, 'static/files/carnets/')
     url_output = os.path.join(settings.BASE_DIR, 'static/files/')
 
     packet = io.BytesIO()
     can = canvas.Canvas(packet, pagesize=(153,240))
        
-    foto_carnet = os.path.join(settings.BASE_DIR, 'static/files/qrimg/foto_carnet.png')
+    foto_carnet = os.path.join(settings.BASE_DIR, 'static/img/foto_carnet.png')
+    if os.path.exists(os.path.join(settings.BASE_DIR, 'static/img/'+cedula+'.jpeg')):
+        foto_carnet = os.path.join(settings.BASE_DIR, 'static/img/'+cedula+'.jpeg')
+        
     can.drawImage(foto_carnet, 40, 88, width=72, height=72, mask=None)
 
     can.setFont("Helvetica-Bold", 6)
@@ -212,22 +221,33 @@ def renderizar(request):
 
     new_pdf = PdfFileReader(packet)
 
-    # read your existing PDF
-    existing_pdf = PdfFileReader(open(url_diseno_carnet, "rb"))
+    existing_pdf = PdfFileReader(open(url_diseno_carnet_admin, "rb"))
+    if cargo in cargos_operaciones:
+        existing_pdf = PdfFileReader(open(url_diseno_carnet_oper, "rb"))
+        
     output = PdfFileWriter()
     page = existing_pdf.getPage(0)
     page.mergePage(new_pdf.getPage(0))
     output.addPage(page)
 
-        # finally, write "output" to a real file
+    # finally, write "output" to a real file
     outputStream = open(url_carnet, "wb")
     output.write(outputStream)
     outputStream.close()
 
-    generar_carnet_cara2(cedula)
-    pdf_to_jpg(url_carnet,url_output,200,'cara_1')    
-    contexto = {'cedula':cedula, 'nombres':nombres, 'cargo': cargo}    
-    return render(request, 'empleados/generar_carnet.html', contexto)
+    url_carnet_cara2 = generar_carnet_cara2(cedula)
+
+    merger = PdfFileMerger()
+        
+    merger.append(PdfFileReader(open(url_carnet, 'rb')))
+    merger.append(PdfFileReader(open(url_carnet_cara2, 'rb')))
+
+    merger.write(url_carnet_final+cedula+'.pdf')
+
+    pdf_to_jpg(url_carnet,url_output,200,'cara_1')
+
+    contexto = {'cedula':cedula, 'nombres':nombres, 'cargo': cargo}
+    return render(request, 'empleados/generar_carnet.html', contexto)    
 
 
 def imprimir(request, cedula):
